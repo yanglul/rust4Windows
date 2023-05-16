@@ -1,23 +1,17 @@
-use windows_sys::{core::*,Win32::Foundation::*, Win32::UI::WindowsAndMessaging::*};
+use windows::{core::*,Win32::Foundation::*, Win32::UI::WindowsAndMessaging::*};
 
 fn main() {
     unsafe {
         // EnumWindows(Some(enum_window), 0);
-        let thwnd = FindWindowW(std::ptr::null(),w!("deeplearning – SekiroCoin.py"));
-        println!("{}",thwnd);
+        let thwnd = FindWindowW(None,w!("新建 文本文档.txt - Notepad"));
+        println!("window_handle：{:?}",thwnd);
+        let ptr:*mut u32 = 0  as * mut u32 ;
+        let process_id =GetWindowThreadProcessId(thwnd,Some(ptr));
+        println!("process_id:{}",process_id);
+        // let process_handle = OpenProcess(PROCESS_ALL_ACCESS, False, process_id);
+        
+
     }
 }
 
-extern "system" fn enum_window(window: HWND, _: LPARAM) -> BOOL {
-    unsafe {
-        let mut text: [u16; 512] = [0; 512];
-        let len = GetWindowTextW(window, text.as_mut_ptr(), text.len() as i32);
-        let text = String::from_utf16_lossy(&text[..len as usize]);
-
-        if !text.is_empty() {
-            println!("{text}");
-        }
-
-        1
-    }
-}
+ 
