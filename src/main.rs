@@ -5,6 +5,12 @@ use windows::{core::*,Win32::Foundation::*,
     Win32::System::ProcessStatus::*,
      };
  use core::ffi::{c_void,c_int,c_longlong,c_long};
+use std::ptr;
+use std::ffi::CString;
+use std::mem;
+
+
+
 
  const MAX_PATH:u32 = 260;
  const PROCESS_NAME :&str = "GenshinImpact.exe";
@@ -38,56 +44,46 @@ use windows::{core::*,Win32::Foundation::*,
 
  #[warn(non_snake_case)]
 fn main() {
-    unsafe {
-        // EnumWindows(Some(enum_window), 0);
-        println!("[>] entering  \n");
-        let thwnd = FindWindowW(None,w!("原神"));
-        println!("window_handle：{:?}",thwnd);
-        let mut  ptr:  u32  = 0     ;
-        let rptr = &mut ptr;
-        let process_id =GetWindowThreadProcessId(thwnd,Some(rptr));
-        println!("process_id:{},ptr{:?}",process_id,ptr);
-        let process_handle: std::result::Result<HANDLE, Error> = OpenProcess(PROCESS_ALL_ACCESS, FALSE, ptr);
-        println!("process_handle:{:?}",process_handle);
-        let basead: u64  = 0x143D5AAC0    ;
-        // let rbuffer: u64 = 0  ;
-        let mut ret: u64 = Default::default();
-        
-       
-        let s =process_handle.unwrap();
-
-        let res2: u32 = get_base_address(s, false);
-        // let a = ReadProcessMemory( s,  basead as *const c_void,  &mut ret as *mut u64 as *mut c_void, 8, None);
-        // println!("a:{:?} rbuffer{:?} ",a, ret);
-        // let   aim1 = ret+0x68;
-         
-        // let b = ReadProcessMemory( s,  aim1 as *const c_void,  &mut ret as *mut u64 as *mut c_void, 8, None);
-        // println!("b:{:?} rbuffer{:?} ",b, ret);
-        // let   aim2 = ret+0x238;
-        // let c = ReadProcessMemory( s,  aim2 as *const c_void,  &mut ret as *mut u64 as *mut c_void, 8, None);
-        // println!("a:{:?} rbuffer{:?} ",c, ret);
-
-        // let   aim3 = ret+0x7C;
-        // println!("金币地址{:?} ",aim3);
-        // let d = ReadProcessMemory( s,  aim3 as *const c_void,  &mut ret as *mut u64 as *mut c_void, 8, None);
-        // println!("a:{:?} rbuffer{:?} ",d, ret);
-
-
-        // let mut money: u64  = 888; 
-        // let f = WriteProcessMemory(s,aim3 as *const c_void,  &mut money as *mut u64 as *mut c_void,8,None);
-     
-        // println!("c:{:?} ",money);
- 
-
-
-        println!("[>] entering  \n");
-
-
-    }
-
-
-
+    let g_path = String::from("D:\\tool\\");
+    let dll_path = String::from("D:\\tool\\");
+    let arg = String::from("");
+    inject(g_path,dll_path,arg);
      
 }
 
  
+ pub fn inject(exe_path:String,dll_path:String,startupArguments:String){
+    let mut si = STARTUPINFOA {
+        cb: mem::size_of::<STARTUPINFOA>() as u32,
+        ..unsafe { mem::zeroed() }
+    };
+
+    let mut pi = PROCESS_INFORMATION {
+        ..unsafe { mem::zeroed() }
+    };
+    let program = CString::new("C:\\Windows\\System32\\cmd.exe").expect("CString::new failed");
+    let arguments = CString::new("/c dir").expect("CString::new failed");
+    let command_line = exe_path+" "+&startupArguments;
+    let p =  PSTR( program.as_ptr() as *mut u8);
+    unsafe{
+        
+        let th = CreateProcessA(
+            Option::None,
+            p,
+            Option::None,
+            Option::None,
+            false,
+            PROCESS_CREATION_FLAGS(0),
+            Option::None,
+            Option::None,
+            &mut si,
+            &mut pi
+
+        
+        );
+        if th==BOOL(0){
+            println!("失败{:?}",GetLastError());
+        }
+
+    }
+ }
